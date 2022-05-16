@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      h{
+        margin:5px;
+      }
+
+      p{
+        padding-right:5px;
+      }
+
+      #loading{
+        width:300px;
+        transition:ease;
+      }
+
+      .container{
+        display:none;
+      }
+      .vertical-center {
+        margin: 0;
+        position: absolute;
+      }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+    </script>
+    <script>
+      $(function() {
+        google.script.run.withSuccessHandler(appendHtml).result();
+      });
+
+      function appendHtml(data) {
+        var questions = $('#questions');
+        for(let i = 0; i < data.length; i++){
+          questions.append('<h2>' + data[i][0] + '</h2>');
+          for(let j = 1; j < data[i].length; j++){
+            const id = i.toString() + j.toString();
+            questions.append('<p>' + data[i][j] + '</p>');
+            $input = $("<input type=\"range\" min=\"0\" max=\"100\" value=\"50\" class=\"slider\" id=\"" + id +"\">").appendTo(questions);
+            questions.append("<span id=\"" + id + "score\" >50</span>");
+          }
+        }
+        var container = $('.container');
+        container.css( "display", "block" );
+        var loading = $('#loading');
+        loading.css( "display", "none" );
+        $(".slider").each(function() {
+          var slider = $(this);
+          slider.on('input', function(){
+            $("#" + slider.attr("id") + "score").text(slider.val());
+          });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
+    <div class="container">
+    <div id="questions"></div>
+    <button type="button" style="margin:10px auto;display:block;" onclick="generateResponses();">Generate Responses</button>
+    </div>
+  </body>
+</html>
+
+<script>
+function onSuccess(){
+  console.log("Success");
+}
+
+function generateResponses(){
+  
+  var temp = [];
+  var values = [];
+  var check_id = 0;
+  var length = $(".slider").length;
+  $(".slider").each(function(index) {
+    var slider = $(this);
+    var element_id = parseInt(slider.attr('id'));
+    if (element_id - check_id == 1){
+      temp.push(slider.val()/100);
+      check_id = element_id;
+      if(index == length -1){
+        values.push(temp);
+     }
+    }
+    else{
+      values.push(temp);
+      temp = [];
+      temp.push(slider.val()/100);
+      check_id = element_id;
+    }
+  });
+  console.log(values);
+  google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(values);
+}
+</script>
+
