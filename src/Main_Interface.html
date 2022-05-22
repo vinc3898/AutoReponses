@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
     <style>
-      h{
-        margin:5px;
+      body{
+        font-family: 'Nunito';
       }
-
-      p{
-        padding-right:5px;
+      h2{
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 20px;
       }
 
       #loading{
@@ -15,12 +18,56 @@
         transition:ease;
       }
 
+      .questionblock{
+        border-radius: 5px;
+        border: 0.5px solid;
+        padding: 10px;
+        margin: 15px auto;
+        box-shadow: 5px 0px 10px #888888;
+      }
+      .questions{
+        font-weight: normal;
+      }
       .container{
         display:none;
       }
       .vertical-center {
         margin: 0;
         position: absolute;
+      }
+      .numberbox{
+        width:100%;
+        border-radius: 5px;
+        border: 2px solid;
+        border-color: cornflowerblue;
+        display: flex;
+        justify-content: center;
+      }
+      td:nth-child(1){
+        max-width: 0;
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .percentage-field{
+        appearance: none;
+        width:15px;
+        background: transparent;
+        border: none;
+        text-align: center;
+        font-size: 12px;
+      }
+      input{
+        font-family: 'Nunito';
+      }
+      input:focus{
+          outline: none;
       }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js">
@@ -31,34 +78,29 @@
       });
 
       function appendHtml(data) {
-        var questions = $('#questions');
+        var questions = $('.questions');
         for(let i = 0; i < data.length; i++){
-          questions.append('<h2>' + data[i][0] + '</h2>');
+          var html = '<div class="questionblock"><h2>' + data[i][0] + '</h2><table style="width:100%;margin:auto;">'
           for(let j = 1; j < data[i].length; j++){
             const id = i.toString() + j.toString();
-            questions.append('<p>' + data[i][j] + '</p>');
-            $input = $("<input type=\"range\" min=\"0\" max=\"100\" value=\"50\" class=\"slider\" id=\"" + id +"\">").appendTo(questions);
-            questions.append("<span id=\"" + id + "score\" >50</span>");
+            html += '<tr style="width:100%;"><td style="width:70%;">' + data[i][j] + 
+              '</td><td style="width:30%;float:right;"><div class="numberbox"><input class="percentage-field" type="number" value="25"></div></td></tr>';
           }
+          html += '</table></div>';
+          questions.append(html)
         }
         var container = $('.container');
         container.css( "display", "block" );
         var loading = $('#loading');
         loading.css( "display", "none" );
-        $(".slider").each(function() {
-          var slider = $(this);
-          slider.on('input', function(){
-            $("#" + slider.attr("id") + "score").text(slider.val());
-          });
-        });
       }
     </script>
   </head>
   <body>
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
     <div class="container">
-    <div id="questions"></div>
-    <button type="button" style="margin:10px auto;display:block;" onclick="generateResponses();">Generate Responses</button>
+      <div class="questions"></div>
+      <button type="button" style="margin:10px auto;display:block;" onclick="generateResponses();">Generate Responses</button>
     </div>
   </body>
 </html>
@@ -70,7 +112,7 @@ function onSuccess(){
 
 function generateResponses(){
   
-  var temp = [];
+  /*var temp = [];
   var values = [];
   var check_id = 0;
   var length = $(".slider").length;
@@ -91,8 +133,8 @@ function generateResponses(){
       check_id = element_id;
     }
   });
-  console.log(values);
-  google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(values);
+  console.log(values);*/
+  google.script.run.withSuccessHandler(onSuccess).open();
 }
 </script>
 
