@@ -57,7 +57,7 @@
       }
       .percentage-field{
         appearance: none;
-        width:15px;
+        width:35px;
         background: transparent;
         border: none;
         text-align: center;
@@ -74,21 +74,12 @@
     </script>
     <script>
       $(function() {
-        google.script.run.withSuccessHandler(appendHtml).result();
+        google.script.run.withSuccessHandler(appendHtml).getQuestions();
       });
 
-      function appendHtml(data) {
+      function appendHtml(html) {
         var questions = $('.questions');
-        for(let i = 0; i < data.length; i++){
-          var html = '<div class="questionblock"><h2>' + data[i][0] + '</h2><table style="width:100%;margin:auto;">'
-          for(let j = 1; j < data[i].length; j++){
-            const id = i.toString() + j.toString();
-            html += '<tr style="width:100%;"><td style="width:70%;">' + data[i][j] + 
-              '</td><td style="width:30%;float:right;"><div class="numberbox"><input class="percentage-field" type="number" value="25"></div></td></tr>';
-          }
-          html += '</table></div>';
-          questions.append(html)
-        }
+        questions.append(html);
         var container = $('.container');
         container.css( "display", "block" );
         var loading = $('#loading');
