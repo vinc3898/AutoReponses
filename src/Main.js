@@ -16,8 +16,8 @@ function getQuestions(){
   questions.forEach(function (q) {
     var title = q.getTitle();
     var option, option_template, values, option = option_template = values = "";
-    var options = (i) => `<tr align="center left" style="width:100%;"><td style="width:70%;">${option}</td><td style="float:right;"><div class="numberbox"><input class="percentage-field" id="${'field_' + i}" type="number" value="${values}"></div></td></tr>`;
-    var temp = () => `<div class="questionblock"><h2>${title}</h2><table style="width:100%;margin:auto;" id="${'table_' + p}">${option_template}</table></div>`;
+    var options = (i) => `<div class="grid-item-row"><div class="grid-item-left"><div class="overflow">${option}</div></div><div class="grid-item-right"><div class="numberbox"><input class="percentage-field" id="${'field_' + i}" type="number" value="${values}"></div></div></div>`;
+    var temp = () => `<div class="questionblock"><h2>${title}</h2><div class="grid-container" id="${'grid_' + p}">${option_template}</div></div>`;
     const qType = q.getType();
     switch (qType)
     {
@@ -35,7 +35,7 @@ function getQuestions(){
          values = 100;
          option = '<input class="text-field" type="text">';
          option_template += options(0);
-         option_template += `<tr style="width:100%;"><td colspan="2" align="center"><button type="button" class="add-button" id="${'addButton_' + p}" onclick="addtextInput(this.id);"><span class="button-icon"><ion-icon name="add-outline"></ion-icon></span></button></td></tr>`
+         option_template += `<div class="grid-item-row"><div class="grid-item-center"><button type="button" class="add-button" id="${'addButton_' + p}" onclick="addtextInput(this.id);"><span class="button-icon"><ion-icon name="add-outline"></ion-icon></span></button></div></div>`
          temp = temp();
          break;
       case iTypes.SCALE:
@@ -96,9 +96,17 @@ function getQuestions(){
          temp = "";
          break;
       }
-      console.log()
       p++;
       html += temp;
   });
   return html;
 }
+
+// Record Time
+/*
+   var total_time = 0;
+   var start = new Date().getTime();
+   var end = new Date().getTime();
+   var time_used = ((end - start)/1000).toFixed(3);
+   total_time += parseFloat(time_used);
+*/

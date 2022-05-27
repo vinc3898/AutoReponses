@@ -5,6 +5,7 @@
     <style>
       body{
         font-family: 'Nunito';
+        font-weight: normal;
       }
       h2{
         white-space: nowrap; 
@@ -17,7 +18,6 @@
         width:300px;
         transition:ease;
       }
-
       .questionblock{
         border-radius: 5px;
         border: 0.5px solid;
@@ -25,30 +25,16 @@
         margin: 15px auto;
         box-shadow: 5px 0px 10px #888888;
       }
-      .questions{
-        font-weight: normal;
-      }
       .container{
         display:none;
       }
-      .vertical-center {
-        margin: 0;
-        position: absolute;
-      }
       .numberbox{
-        width:100%;
+        padding: 0 1px;
         border-radius: 5px;
         border: 2px solid cornflowerblue;
         display: flex;
         justify-content: center;
       }
-      td:nth-child(1){
-        max-width: 0;
-        white-space: nowrap; 
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
       input::-webkit-outer-spin-button,
       input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -96,28 +82,44 @@
         display: inline-flex;
         align-items: center;
       }
-    </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js">
-    </script>
-    <script>
-      $(function() {
-        google.script.run.withSuccessHandler(appendHtml).getQuestions();
-      });
-
-      function appendHtml(html) {
-        var questions = $('.questions');
-        questions.append(html);
-        var container = $('.container');
-        container.css( "display", "block" );
-        var loading = $('#loading');
-        loading.css( "display", "none" );
+      .grid-container{
+        display: grid;
+        grid-template-columns: 70% 30%;
+        grid-template-rows: auto;
+        row-gap: 5px;
+        overflow: hidden;
       }
-    </script>
+      .grid-item-left{
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        overflow: hidden;
+      }
+      .grid-item-right{
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+      }
+      .grid-item-center{
+        grid-column: 1 / span 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .grid-item-row{
+        display: contents;
+      }
+      .overflow{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
   </head>
   <body>
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
     <div class="container">
-      <div class="questions"></div>
+      <div id="questions"></div>
       <button type="button" style="margin:10px auto;display:block;" onclick="generateResponses();">Generate Responses</button>
     </div>
     <!-- ionicons start -->
@@ -128,23 +130,37 @@
 </html>
 
 <script>
+
+document.addEventListener("DOMContentLoaded", function() {
+  google.script.run.withSuccessHandler(appendHtml).getQuestions();
+});
+
+function appendHtml(html) {
+  var questions = document.getElementById("questions");
+  var container = document.getElementsByClassName("container")[0];
+  var loading = document.getElementById("loading");
+
+  questions.innerHTML = html;
+  container.style.display = "block";
+  loading.style.display = "none";
+}
+
 function addtextInput(button_id){
 
-  var id = button_id.split("_")[1]
-  const target_table = document.getElementById("table_" + id);
-  const table_body = target_table.getElementsByTagName("tbody")[0];
-  const length = table_body.children.length - 1;
+  const id = button_id.split("_")[1]
+  const target = document.getElementById("grid_" + id);
+  const first_row = target.children[0];
+  const length = target.children.length - 1;
 
-  console.log(table_body);
-  console.log(length);
-  var new_option = table_body.firstChild.cloneNode(true);
-  new_option.querySelector('.percentage-field').setAttribute("id", "filed_" + length);
-  //new_option.setAttribute("values", length);
+  const new_option = first_row.cloneNode(true);
+  const percentage_field = new_option.querySelector('.percentage-field');
+  const text = new_option.querySelector('.text-field');
 
+  percentage_field.id = "filed_" + length;
+  text.value = "";
   
-  
-  console.log(new_option);
-  table_body.insertBefore(new_option, table_body.lastChild);
+  console.log(text);
+  target.insertBefore(new_option, target.lastChild);
 }
 
 function onSuccess(){
