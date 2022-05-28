@@ -12,6 +12,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         font-size: 20px;
+        text-align: left;
       }
       #loading{
         width:300px;
@@ -26,6 +27,7 @@
       }
       .container{
         display:none;
+        text-align: center;
       }
       .numberbox{
         padding: 0 1px;
@@ -50,17 +52,17 @@
       input{
         font-family: 'Nunito';
       }
+      .numberbox:focus-within,
+      input.text-field:focus,
       input.percentage-field:focus{
-          outline: none;
+        outline: none;
+        border-color: blue;
       }
       input.text-field{
         font-size: 18px;
         outline: 0;
         border: none;
         border-bottom: 2px solid cornflowerblue;
-      }
-      input.text-field:focus{
-        border-color: blue;
       }
       .add-button{
         display: inline-flex;
@@ -116,19 +118,64 @@
       ion-icon {
         pointer-events: none;
       }
-      .percentage-remain{
+      input.percentage-remain{
         margin-top: 20px;
+        pointer-events: none;
+        width: 60%;
         text-align: center;
         font-weight: bold;
         font-size: 15px;
+        border: none;
+        outline: 0;
+        caret-color: transparent;
       }
+      input.percentage-remain:focus{
+        outline: none;
+      }
+      /*Source from getcssscan.com */
+      .generate-button{
+        appearance: none;
+        background-color: transparent;
+        border: 0.5px solid;
+        border-radius: 15px;
+        box-shadow: 5px 0px 10px #888888;
+        box-sizing: border-box;
+        color: #3B3B3B;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 18px;
+        font-weight: bold;
+        line-height: normal;
+        margin: auto;
+        min-height: 40px;
+        min-width: 0;
+        outline: none;
+        padding: 12px 20px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+        width: 50%;
+        will-change: transform;
+      }
+      .generate-button:hover {
+        color: #fff;
+        background-color: #1A1A1A;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 11px 18px;
+        transform: translateY(-2px);
+      }
+      .generate-button:active {
+        box-shadow: none;
+        transform: translateY(0);
+      }
+      /*****************************/
+
     </style>
   </head>
   <body>
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
     <div class="container">
       <div id="questions"></div>
-      <button type="button" style="margin:10px auto;display:block;" onclick="generateResponses();">Generate Responses</button>
+      <button type="button" class="generate-button" onclick="validation();">Generate</button>
     </div>
     <!-- ionicons start -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
@@ -155,33 +202,51 @@ function appendHtml(html) {
 
 function remainHandle(id, value=NaN){
   const remain = document.getElementById("remain_" + id);
-  if (value || value == 0){
+  if (!(isNaN(value))){
     const new_value = value.toFixed(1).replace(/[.,]0+$/, "");
     if(new_value > 100 || new_value < 0){
       remain.style.color = "red";
     }else{
       remain.style.color = "black";
     }
-    remain.textContent = "Remaining " + new_value + "%";
+    remain.value = "Remaining " + new_value + "%";
+
   }else{
-    const value = ((remain.textContent).match(/[+-]?\d+(\.\d+)?/g)).join("");
+    const value = ((remain.value).match(/[+-]?\d+(\.\d+)?/g)).join("");
     return value;
   }
   
 }
 
-function changeRemain(field_id){
+function updateRemain(input){
   
-  const id = field_id.split("_")[1];
+  const id = (input.id).split("_")[1];
   const all_field = document.getElementById("grid_" + id).getElementsByClassName("percentage-field");
 
   var total = 0.0;
   for(let i = 0; i < all_field.length; i++){
     var value = all_field[i].value;
-    value = value || 0.0;
-    total += parseFloat(value);
+    value = (isNaN(value) || value == "") ? 0 : value;
+    total += Number(value);
   }
+
   remainHandle(id, 100 - total);
+
+  const field_value = input.value;
+  if(field_value <= 100 && field_value >= 0 && field_value != ""){
+    input.setCustomValidity('');
+  }else{
+    var message;
+    if(field_value > 100){
+      message = 'This number cannot be greater than 100.'
+    }else if(field_value < 0){
+      message = 'This number cannot be less than 0.';
+    }else{
+      message = 'Please enter a number.';
+    }
+    input.setCustomValidity(message);
+    input.reportValidity();
+  }
 }
 
 function addtextInput(button_id){
@@ -200,6 +265,7 @@ function addtextInput(button_id){
   percentage_field.id = "filed_" + id + "_" + length;
   percentage_field.value =  remain_value;
 
+  text.id = "text_" + id + "_" + length;
   text.value = "";
   
   target.insertBefore(new_option, target.lastChild);
@@ -212,29 +278,67 @@ function onSuccess(){
 
 function generateResponses(){
   
-  /*var temp = [];
-  var values = [];
-  var check_id = 0;
-  var length = $(".slider").length;
-  $(".slider").each(function(index) {
-    var slider = $(this);
-    var element_id = parseInt(slider.attr('id'));
-    if (element_id - check_id == 1){
-      temp.push(slider.val()/100);
-      check_id = element_id;
-      if(index == length -1){
-        values.push(temp);
-     }
+  //google.script.run.withSuccessHandler(onSuccess).open();
+  console.log("Success");
+}
+
+function validation(){
+  const remain = document.getElementsByClassName("percentage-remain");
+  for(let i = 0; i < remain.length; i++){
+    const id = (remain[i].id).split("_")[1];
+    const remain_value = Number(remainHandle(id));
+    if (remain_value){
+      const message = 'Remaining must be 0';
+      if(!(isInViewport(remain[i]))){
+        scrollToElement(remain[i], message);
+      }else{
+        remain[i].setCustomValidity(message);
+        remain[i].reportValidity();
+      }
+      return false;
     }
-    else{
-      values.push(temp);
-      temp = [];
-      temp.push(slider.val()/100);
-      check_id = element_id;
-    }
-  });
-  console.log(values);*/
-  google.script.run.withSuccessHandler(onSuccess).open();
+  }
+  const percentage_field = document.getElementsByClassName("percentage-field");
+  for(let i = 0; i < percentage_field.length; i++){
+    const value = percentage_field[i].value;
+    if(!(value <= 100 && value >= 0 && value != "")){
+      const message = 'Invalid input';
+      if(!(isInViewport(percentage_field[i]))){
+        scrollToElement(percentage_field[i], message);
+      }else{
+        percentage_field[i].setCustomValidity(message);
+        percentage_field[i].reportValidity();
+      }
+      return false;
+    }  
+  }
+}
+
+function scrollToElement(target, message){
+  var scrollTimeout;
+  document.addEventListener('scroll', function hanlder(e) {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+            target.setCustomValidity(message);
+            target.reportValidity();
+            document.removeEventListener('scroll', hanlder);
+        }, 100);
+      });
+      target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center'
+      });
+}
+// Source from https://www.javascripttutorial.net/
+function isInViewport(element){
+    const rect = element.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
 }
 </script>
 
