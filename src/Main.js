@@ -16,8 +16,8 @@ function getQuestions(){
   questions.forEach(function (q) {
     var title = q.getTitle();
     var option, option_template, values, option = option_template = values = "";
-    var options = (i) => `<div class="grid-item-row"><div class="grid-item-left"><div class="overflow">${option}</div></div><div class="grid-item-right"><div class="numberbox"><input class="percentage-field" id="${'field_' + i}" type="number" value="${values}"></div></div></div>`;
-    var temp = () => `<div class="questionblock"><h2>${title}</h2><div class="grid-container" id="${'grid_' + p}">${option_template}</div></div>`;
+    var options = (i) => `<div class="grid-item-row"><div class="grid-item-left"><div class="overflow">${option}</div></div><div class="grid-item-right"><div class="numberbox"><input class="percentage-field" id="${'field_' + p + '_' + i}" type="number" value="${values}" oninput="changeRemain(this.id)"></div></div></div>`;
+    var temp = () => `<div class="questionblock"><h2>${title}</h2><div class="grid-container" id="${'grid_' + p}">${option_template}</div><div class="percentage-remain" id="${'remain_' + p}">Remaining 0%</div></div>`;
     const qType = q.getType();
     switch (qType)
     {
@@ -35,7 +35,7 @@ function getQuestions(){
          values = 100;
          option = '<input class="text-field" type="text">';
          option_template += options(0);
-         option_template += `<div class="grid-item-row"><div class="grid-item-center"><button type="button" class="add-button" id="${'addButton_' + p}" onclick="addtextInput(this.id);"><span class="button-icon"><ion-icon name="add-outline"></ion-icon></span></button></div></div>`
+         option_template += `<div class="grid-item-row"><div class="grid-item-center"><button type="button" class="add-button" id="${'addButton_' + p}" onclick="addtextInput(this.id);"><span class="button-icon" title="Add option"><ion-icon name="add-outline"></ion-icon></span></button></div></div>`
          temp = temp();
          break;
       case iTypes.SCALE:

@@ -13,7 +13,6 @@
         text-overflow: ellipsis;
         font-size: 20px;
       }
-
       #loading{
         width:300px;
         transition:ease;
@@ -114,6 +113,15 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      ion-icon {
+        pointer-events: none;
+      }
+      .percentage-remain{
+        margin-top: 20px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 15px;
+      }
     </style>
   </head>
   <body>
@@ -145,6 +153,37 @@ function appendHtml(html) {
   loading.style.display = "none";
 }
 
+function remainHandle(id, value=NaN){
+  const remain = document.getElementById("remain_" + id);
+  if (value || value == 0){
+    const new_value = value.toFixed(1).replace(/[.,]0+$/, "");
+    if(new_value > 100 || new_value < 0){
+      remain.style.color = "red";
+    }else{
+      remain.style.color = "black";
+    }
+    remain.textContent = "Remaining " + new_value + "%";
+  }else{
+    const value = ((remain.textContent).match(/[+-]?\d+(\.\d+)?/g)).join("");
+    return value;
+  }
+  
+}
+
+function changeRemain(field_id){
+  
+  const id = field_id.split("_")[1];
+  const all_field = document.getElementById("grid_" + id).getElementsByClassName("percentage-field");
+
+  var total = 0.0;
+  for(let i = 0; i < all_field.length; i++){
+    var value = all_field[i].value;
+    value = value || 0.0;
+    total += parseFloat(value);
+  }
+  remainHandle(id, 100 - total);
+}
+
 function addtextInput(button_id){
 
   const id = button_id.split("_")[1]
@@ -156,11 +195,15 @@ function addtextInput(button_id){
   const percentage_field = new_option.querySelector('.percentage-field');
   const text = new_option.querySelector('.text-field');
 
-  percentage_field.id = "filed_" + length;
+  const remain_value = remainHandle(id);
+
+  percentage_field.id = "filed_" + id + "_" + length;
+  percentage_field.value =  remain_value;
+
   text.value = "";
   
-  console.log(text);
   target.insertBefore(new_option, target.lastChild);
+  remainHandle(id, 0);
 }
 
 function onSuccess(){
