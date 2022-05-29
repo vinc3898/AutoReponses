@@ -1,4 +1,5 @@
 const form = FormApp.getActiveForm();
+const iTypes = FormApp.ItemType;
 
 function onOpen(){
   FormApp.getUi().createAddonMenu().addItem("Open", "showSidebar").addToUi();
@@ -31,7 +32,6 @@ function getQuestions(){
             option = choices[i].getValue();
             option_template += options(i);
          }
-         temp = temp();
          break;
       case iTypes.TEXT:
       case iTypes.PARAGRAPH_TEXT:
@@ -39,7 +39,6 @@ function getQuestions(){
          option = `<input class="text-field" type="text" id="${"text_" + p + "_0"}">`;
          option_template += options(0);
          option_template += `<div class="grid-item-row"><div class="grid-item-center"><button type="button" class="add-button" id="${'addButton_' + p}" onclick="addtextInput(this.id);"><span class="button-icon" title="Add option"><ion-icon name="add-outline"></ion-icon></span></button></div></div>`
-         temp = temp();
          break;
       case iTypes.SCALE:
          var upperbound = q.asScaleItem().getUpperBound(), lowerbound = q.asScaleItem().getLowerBound();
@@ -51,7 +50,6 @@ function getQuestions(){
             option = i;
             option_template += options(i);
          }
-         temp = temp();
          break;
       case iTypes.LIST:
          var choices = q.asListItem().getChoices();
@@ -63,7 +61,6 @@ function getQuestions(){
             option = choices[i].getValue();
             option_template += options(i);
          }
-         temp = temp();
          break;
       case iTypes.CHECKBOX:
          var choices = q.asCheckboxItem().getChoices();
@@ -75,7 +72,6 @@ function getQuestions(){
             option = choices[i].getValue();
             option_template += options(i);
          }
-         temp = temp();
          break;
       case iTypes.GRID:
          var rows = q.asGridItem().getRows();
@@ -90,7 +86,6 @@ function getQuestions(){
                option_template += options(i+j);
             }
          }
-         temp = temp();
          break;
       case iTypes.CHECKBOX_GRID:
          var rows = q.asCheckboxGridItem().getRows();
@@ -105,17 +100,14 @@ function getQuestions(){
                option_template += options(i+j);
             }
          }
-         temp = temp();
          break;
       default:
          Logger.log(qType);
       case iTypes.PAGE_BREAK:
-         p--;
-         temp = "";
-         break;
+         return;
       }
+      html += temp();
       p++;
-      html += temp;
   });
   return html;
 }

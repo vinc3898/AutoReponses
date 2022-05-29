@@ -1,13 +1,11 @@
-const iTypes = FormApp.ItemType;
-
 // Main Control of answer
-function createRandomSubmission(prob, text=""){
-
-  const iTypes = FormApp.ItemType;
+function createRandomSubmission(prob, text){
+  
   const resp = form.createResponse();
   const questions = form.getItems(); 
-  j = 0;
-  questions.forEach(function (q,i){
+  var j = 0;
+  var i = 0;
+  questions.forEach(function (q){
     const qType = q.getType();
     var answer;
     switch (qType)
@@ -22,7 +20,10 @@ function createRandomSubmission(prob, text=""){
       case iTypes.SCALE:
          answer = getWeightedRandomScaleAnswer(q.asScaleItem(), prob[i]);
          break;
+      case iTypes.PAGE_BREAK:
+         return;
     }
+    i++;
     resp.withItemResponse(answer);
   });
   resp.submit();
@@ -31,7 +32,6 @@ function createRandomSubmission(prob, text=""){
 // Multiple choice answer
 function getWeightedRandomMCQAnswer(q, prob){
   var random = Math.random(), sum = 0, choices = q.getChoices();
-  Logger.log(prob);
   for(let i = 0; i < choices.length - 1; i++){
     sum += prob[i];
     if(sum > random){
@@ -50,7 +50,7 @@ function getWeightedRandomScaleAnswer(q, prob){
   for(let i = lowerbound; i <= upperbound; i++){
     choices.push(i);
   }
-
+  Logger.log(prob);
   for(let i = 0; i < choices.length - 1; i++){
     sum += prob[i];
     if(sum > random){
@@ -63,7 +63,6 @@ function getWeightedRandomScaleAnswer(q, prob){
 // Text answer
 function getWeightedRandomTextAnswer(q, prob, text){
   var random = Math.random(), sum = 0;
-
   for(let i = 0; i < text.length - 1; i++){
     sum += prob[i];
     if(sum > random){
@@ -75,12 +74,9 @@ function getWeightedRandomTextAnswer(q, prob, text){
 
 function test(){
 
-  const questions = form.getItems(); 
-  const p = [[0.3, 0.3, 0.3, 0.1],[0.7, 0.3],[0.25,0.25,0.25,0.25]];
-  const text = [["a", "b", "c", "d"]];
-  for(let i = 0; i < 100; i++){
-    createRandomSubmission(questions,p,text);
-  }
+  const p = [[0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.165], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.5, 0.5], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]];
+  const text = 	[["abc", "edf"]];
+  createRandomSubmission(p,text);
 }
 
 

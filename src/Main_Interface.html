@@ -175,7 +175,7 @@
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
     <div class="container">
       <div id="questions"></div>
-      <button type="button" class="generate-button" onclick="validation();">Generate</button>
+      <button type="button" class="generate-button" onclick="generateResponses();">Generate</button>
     </div>
     <!-- ionicons start -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
@@ -206,11 +206,11 @@ function remainHandle(id, value=NaN){
     const new_value = value.toFixed(1).replace(/[.,]0+$/, "");
     if(new_value > 100 || new_value < 0){
       remain.style.color = "red";
+      remain.value = "Remaining " + new_value + "%";
     }else{
       remain.style.color = "black";
+      remain.value = "Remaining " + Math.abs(new_value) + "%";
     }
-    remain.value = "Remaining " + new_value + "%";
-
   }else{
     const value = ((remain.value).match(/[+-]?\d+(\.\d+)?/g)).join("");
     return value;
@@ -251,7 +251,7 @@ function updateRemain(input){
 
 function addtextInput(button_id){
 
-  const id = button_id.split("_")[1]
+  const id = button_id.split("_")[1];
   const target = document.getElementById("grid_" + id);
   const first_row = target.children[0];
   const length = target.children.length - 1;
@@ -259,7 +259,6 @@ function addtextInput(button_id){
   const new_option = first_row.cloneNode(true);
   const percentage_field = new_option.querySelector('.percentage-field');
   const text = new_option.querySelector('.text-field');
-
   const remain_value = remainHandle(id);
 
   percentage_field.id = "filed_" + id + "_" + length;
@@ -277,41 +276,51 @@ function onSuccess(){
 }
 
 function generateResponses(){
-  
-  //google.script.run.withSuccessHandler(onSuccess).open();
-  console.log("Success");
-}
 
-function validation(){
-  const remain = document.getElementsByClassName("percentage-remain");
-  for(let i = 0; i < remain.length; i++){
-    const id = (remain[i].id).split("_")[1];
-    const remain_value = Number(remainHandle(id));
+  const questionblocks = document.getElementsByClassName("questionblock");
+  var prob = [];
+  var text = [];
+  for(let i = 0; i < questionblocks.length; i++){
+    const remain = questionblocks[i].querySelector(".percentage-remain");
+    const remain_value = Number(remainHandle((remain.id).split("_")[1]));
     if (remain_value){
       const message = 'Remaining must be 0';
-      if(!(isInViewport(remain[i]))){
-        scrollToElement(remain[i], message);
+      if(!(isInViewport(remain))){
+        scrollToElement(remain, message);
       }else{
-        remain[i].setCustomValidity(message);
-        remain[i].reportValidity();
+        remain.setCustomValidity(message);
+        remain.reportValidity();
       }
       return false;
     }
-  }
-  const percentage_field = document.getElementsByClassName("percentage-field");
-  for(let i = 0; i < percentage_field.length; i++){
-    const value = percentage_field[i].value;
-    if(!(value <= 100 && value >= 0 && value != "")){
-      const message = 'Invalid input';
-      if(!(isInViewport(percentage_field[i]))){
-        scrollToElement(percentage_field[i], message);
+    const percentage_fields = questionblocks[i].querySelectorAll(".percentage-field");
+    var temp = [];
+    for(let j = 0; j < percentage_fields.length; j++){
+      const value = percentage_fields[j].value;
+      if(!(value <= 100 && value >= 0 && value != "")){
+        const message = 'Invalid input';
+        if(!(isInViewport(percentage_fields[j]))){
+          scrollToElement(percentage_fields[j], message);
+        }else{
+          percentage_fields[j].setCustomValidity(message);
+          percentage_fields[j].reportValidity();
+        }
+        return false;
       }else{
-        percentage_field[i].setCustomValidity(message);
-        percentage_field[i].reportValidity();
+        temp.push(value/100);
       }
-      return false;
-    }  
+    }
+    const text_fields = questionblocks[i].querySelectorAll(".text-field");
+    if(text_fields.length > 0){
+      var text_temp = [];
+      for(let p = 0; p < text_fields.length; p++){
+        text_temp.push(text_fields[p].value);
+      }
+      text.push(text_temp);
+    }
+    prob.push(temp);
   }
+  google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(prob, text);
 }
 
 function scrollToElement(target, message){
