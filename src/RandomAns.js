@@ -2,83 +2,87 @@
 function createRandomSubmission(prob, text, quantity){
 
   const questions = form.getItems();
-  while(quantity-- > 0){
-    const resp = form.createResponse();
-    var j = 0;
-    var i = 0;
-    questions.forEach(function (q){
-      const qType = q.getType();
-      var answer;
-      switch (qType)
-      {
-        case iTypes.MULTIPLE_CHOICE:
-          answer = getWeightedRandomMCQAnswer(q.asMultipleChoiceItem(), prob[i]);
-          break;
-        case iTypes.TEXT:
-          answer = getWeightedRandomTextAnswer(q.asTextItem(), prob[i], text[j]);
-          j++;
-          break;
-        case iTypes.SCALE:
-          answer = getWeightedRandomScaleAnswer(q.asScaleItem(), prob[i]);
-          break;
-        case iTypes.PAGE_BREAK:
-          return;
-      }
-      i++;
-      resp.withItemResponse(answer);
-    });
-    resp.submit();
-  }
+  var choices = [];
+  var categorized_questions = [];
+  var i = 0;
+  questions.forEach(function (q){
+    const qType = q.getType();
+    switch (qType)
+    {
+      case iTypes.MULTIPLE_CHOICE:
+        q = q.asMultipleChoiceItem();
+        choices.push(getMCQChoices(q));
+        break;
+      case iTypes.TEXT:
+        q = q.asTextItem();
+        var temp = [];
+        for(let j = 0; j < text[i].length; j++){
+          temp.push(text[i][j]);
+        }
+        choices.push(temp);
+        i++;
+        break;
+      case iTypes.SCALE:
+        q = q.asScaleItem();
+        choices.push(getScaleBounds(q));
+        break;
+      case iTypes.PAGE_BREAK:
+        return;
+    }
+    categorized_questions.push(q)
+  });
+  getWeightedRandomAnswer(choices, categorized_questions, prob, quantity);
   return true;
 }
 
 // Multiple choice answer
-function getWeightedRandomMCQAnswer(q, prob){
-  var random = Math.random(), sum = 0, choices = q.getChoices();
-  for(let i = 0; i < choices.length - 1; i++){
-    sum += prob[i];
-    if(sum > random){
-      return  q.createResponse(choices[i].getValue());
-    }
+function getMCQChoices(q){
+  const choices = q.getChoices()
+  var options = [];
+  for(let i = 0; i < choices.length; i++){
+    options.push(choices[i].getValue());
   }
-  return q.createResponse(choices[choices.length - 1].getValue());
+  return options;
 }
 
 // Scale answer
-function getWeightedRandomScaleAnswer(q, prob){
-  var random = Math.random(), sum = 0;
-  var upperbound = q.getUpperBound(), lowerbound = q.getLowerBound();
-  var choices = [];
-
+function getScaleBounds(q){
+  const upperbound = q.getUpperBound(), lowerbound = q.getLowerBound();
+  var options = [];
   for(let i = lowerbound; i <= upperbound; i++){
-    choices.push(i);
+    options.push(i);
   }
-  for(let i = 0; i < choices.length - 1; i++){
-    sum += prob[i];
-    if(sum > random){
-      return  q.createResponse(choices[i]);
-    }
-  }
-  return q.createResponse(choices[choices.length - 1]);
+  return options;
 }
 
-// Text answer
-function getWeightedRandomTextAnswer(q, prob, text){
-  var random = Math.random(), sum = 0;
-  for(let i = 0; i < text.length - 1; i++){
-    sum += prob[i];
-    if(sum > random){
-      return  q.createResponse(text[i]);
+function getWeightedRandomAnswer(choices, questions, prob, quantity){
+
+  for(let i = 0; i < quantity; i++){
+    const resp = form.createResponse();
+    for(let j = 0; j < questions.length; j++){
+      const random = Math.random();
+      var sum = 0;
+      var answer;
+      for(let k = 0; k < choices[j].length; k++){
+        sum += prob[j][k];
+        if(sum > random){
+          answer = questions[j].createResponse(choices[j][k]);
+          break;
+        }else{
+          if(k == choices[j].length - 1){
+            answer = questions[j].createResponse(choices[j][k]);
+          }
+        }
+      }
+      resp.withItemResponse(answer);
     }
+    resp.submit();
   }
-  return q.createResponse(text[text.length - 1]);
 }
 
 function test(){
 
-  const p = [[0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.165], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.5, 0.5], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]];
+  /*const p = [[0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.16699999999999998, 0.165], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.5, 0.5], [0.33299999999999996, 0.33299999999999996, 0.33399999999999996], [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]];
   const text = 	[["abc", "edf"]];
-  createRandomSubmission(p,text);
+  createRandomSubmission(p,text);*/
 }
-
-
