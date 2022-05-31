@@ -3,35 +3,33 @@ function createRandomSubmission(prob, text, quantity){
 
   const questions = form.getItems();
   var choices = [];
-  var categorized_questions = [];
   var i = 0;
+  var questions_length = 0;
   questions.forEach(function (q){
     const qType = q.getType();
     switch (qType)
     {
       case iTypes.MULTIPLE_CHOICE:
-        q = q.asMultipleChoiceItem();
-        choices.push(getMCQChoices(q));
+        choices.push(getMCQChoices(q.asMultipleChoiceItem()));
         break;
       case iTypes.TEXT:
         q = q.asTextItem();
         var temp = [];
         for(let j = 0; j < text[i].length; j++){
-          temp.push(text[i][j]);
+          temp.push(q.createResponse(text[i][j]));
         }
         choices.push(temp);
         i++;
         break;
       case iTypes.SCALE:
-        q = q.asScaleItem();
-        choices.push(getScaleBounds(q));
+        choices.push(getScaleBounds(q.asScaleItem()));
         break;
       case iTypes.PAGE_BREAK:
         return;
     }
-    categorized_questions.push(q)
+    questions_length++
   });
-  getWeightedRandomAnswer(choices, categorized_questions, prob, quantity);
+  getWeightedRandomAnswer(choices, questions_length, prob, quantity);
   return true;
 }
 
@@ -40,7 +38,7 @@ function getMCQChoices(q){
   const choices = q.getChoices()
   var options = [];
   for(let i = 0; i < choices.length; i++){
-    options.push(choices[i].getValue());
+    options.push(q.createResponse(choices[i].getValue()));
   }
   return options;
 }
@@ -50,27 +48,27 @@ function getScaleBounds(q){
   const upperbound = q.getUpperBound(), lowerbound = q.getLowerBound();
   var options = [];
   for(let i = lowerbound; i <= upperbound; i++){
-    options.push(i);
+    options.push(q.createResponse(i));
   }
   return options;
 }
 
-function getWeightedRandomAnswer(choices, questions, prob, quantity){
+function getWeightedRandomAnswer(choices, questions_length, prob, quantity){
 
   for(let i = 0; i < quantity; i++){
     const resp = form.createResponse();
-    for(let j = 0; j < questions.length; j++){
+    for(let j = 0; j < questions_length; j++){
       const random = Math.random();
       var sum = 0;
       var answer;
       for(let k = 0; k < choices[j].length; k++){
         sum += prob[j][k];
         if(sum > random){
-          answer = questions[j].createResponse(choices[j][k]);
+          answer = choices[j][k];
           break;
         }else{
           if(k == choices[j].length - 1){
-            answer = questions[j].createResponse(choices[j][k]);
+            answer = choices[j][k];
           }
         }
       }
