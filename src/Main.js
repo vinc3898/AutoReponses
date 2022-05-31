@@ -1,6 +1,10 @@
 const form = FormApp.getActiveForm();
 const iTypes = FormApp.ItemType;
 
+function onInstall() {
+   onOpen();
+ }
+
 function onOpen(){
   FormApp.getUi().createAddonMenu().addItem("Open", "showSidebar").addToUi();
 }

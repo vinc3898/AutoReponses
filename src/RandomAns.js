@@ -1,32 +1,35 @@
 // Main Control of answer
-function createRandomSubmission(prob, text){
-  
-  const resp = form.createResponse();
-  const questions = form.getItems(); 
-  var j = 0;
-  var i = 0;
-  questions.forEach(function (q){
-    const qType = q.getType();
-    var answer;
-    switch (qType)
-    {
-      case iTypes.MULTIPLE_CHOICE:
-         answer = getWeightedRandomMCQAnswer(q.asMultipleChoiceItem(), prob[i]);
-         break;
-      case iTypes.TEXT:
-         answer = getWeightedRandomTextAnswer(q.asTextItem(), prob[i], text[j]);
-         j++;
-         break;
-      case iTypes.SCALE:
-         answer = getWeightedRandomScaleAnswer(q.asScaleItem(), prob[i]);
-         break;
-      case iTypes.PAGE_BREAK:
-         return;
-    }
-    i++;
-    resp.withItemResponse(answer);
-  });
-  resp.submit();
+function createRandomSubmission(prob, text, quantity){
+
+  const questions = form.getItems();
+  while(quantity-- > 0){
+    const resp = form.createResponse();
+    var j = 0;
+    var i = 0;
+    questions.forEach(function (q){
+      const qType = q.getType();
+      var answer;
+      switch (qType)
+      {
+        case iTypes.MULTIPLE_CHOICE:
+          answer = getWeightedRandomMCQAnswer(q.asMultipleChoiceItem(), prob[i]);
+          break;
+        case iTypes.TEXT:
+          answer = getWeightedRandomTextAnswer(q.asTextItem(), prob[i], text[j]);
+          j++;
+          break;
+        case iTypes.SCALE:
+          answer = getWeightedRandomScaleAnswer(q.asScaleItem(), prob[i]);
+          break;
+        case iTypes.PAGE_BREAK:
+          return;
+      }
+      i++;
+      resp.withItemResponse(answer);
+    });
+    resp.submit();
+  }
+  return true;
 }
 
 // Multiple choice answer
@@ -50,7 +53,6 @@ function getWeightedRandomScaleAnswer(q, prob){
   for(let i = lowerbound; i <= upperbound; i++){
     choices.push(i);
   }
-  Logger.log(prob);
   for(let i = 0; i < choices.length - 1; i++){
     sum += prob[i];
     if(sum > random){
@@ -78,9 +80,5 @@ function test(){
   const text = 	[["abc", "edf"]];
   createRandomSubmission(p,text);
 }
-
-
-
-
 
 

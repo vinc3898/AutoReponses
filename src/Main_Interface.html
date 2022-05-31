@@ -18,7 +18,7 @@
         width:300px;
         transition:ease;
       }
-      .questionblock{
+      .questionblock, .quantityblock{
         border-radius: 5px;
         border: 0.5px solid;
         padding: 10px;
@@ -143,16 +143,12 @@
         color: #3B3B3B;
         cursor: pointer;
         display: inline-block;
-        font-size: 18px;
-        font-weight: bold;
-        line-height: normal;
         margin: auto;
         min-height: 40px;
         min-width: 0;
         outline: none;
         padding: 12px 20px;
         text-align: center;
-        text-decoration: none;
         transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
         width: 50%;
         will-change: transform;
@@ -168,14 +164,99 @@
         transform: translateY(0);
       }
       /*****************************/
+      .generate-button:disabled{
+        pointer-events: none;
+      }
+      .generate-button-text{
+        font-size: 18px;
+        font-weight: bold;
+        line-height: normal;
+        transition: opacity 0.2s;
+      }
+      .generate-button-loading .generate-button-text{
+        visibility: hidden;
+        opacity: 0;
+      }
+      .generate-button-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        border: 3px solid transparent;
+        border-top-color: black;
+        border-radius: 50%;
+        animation: button-loading-spinner 1s ease infinite;
+      }
+      @keyframes button-loading-spinner {
+        from {
+          transform: rotate(0turn);
+        }
+
+        to {
+          transform: rotate(1turn);
+        }
+      }
+      .popup .overlay{
+        position: fixed;
+        min-height: 100%;
+        min-width: 100%;
+        left: 0;
+        top: 0;
+        background: rgba(0,0,0,0.5);
+        z-index:1;
+        display: none;
+      }
+      .popup .content{
+        position: fixed;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%) scale(0);
+        background: #fff;
+        width:200px;
+        height:100px;
+        text-align: center;
+        z-index:2;
+      }
+      .popup.active .overlay{
+        display: block;
+      }
+      
+      .popup.active .content{
+        transition:all 300ms ease-in-out;
+        transform:translate(-50%, -50%) scale(1);
+      }
+
 
     </style>
   </head>
   <body>
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
+    <div class="popup">
+      <div class="overlay"></div>
+      <div class="content">0</div>
+    </div>
     <div class="container">
       <div id="questions"></div>
-      <button type="button" class="generate-button" onclick="generateResponses();">Generate</button>
+      <div class="quantityblock">
+        <div class="grid-container">
+          <div class="grid-item-row">
+            <div class="grid-item-left">Number of Responses</div>
+            <div class="grid-item-right">
+              <div class="numberbox">
+                <input class="percentage-field" id="quantity" type="number" value="1" step="any">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="generate-button" onclick="generateResponses(this);">
+        <span class="generate-button-text">Generate</span>
+      </button>
     </div>
     <!-- ionicons start -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
@@ -185,10 +266,25 @@
 </html>
 
 <script>
-
+var startTime, endTime;
 document.addEventListener("DOMContentLoaded", function() {
   google.script.run.withSuccessHandler(appendHtml).getQuestions();
 });
+
+function start(){
+  startTime = new Date();
+}
+
+function end(){
+  endTime = new Date();
+  var timeDiff = endTime - startTime; //in ms
+  // strip the ms
+  timeDiff /= 1000;
+
+  // get seconds 
+  var seconds = Math.round(timeDiff);
+  console.log(seconds + " seconds");
+}
 
 function appendHtml(html) {
   var questions = document.getElementById("questions");
@@ -270,13 +366,19 @@ function addtextInput(button_id){
   target.insertBefore(new_option, target.lastChild);
   remainHandle(id, 0);
 }
-
-function onSuccess(){
-  console.log("Success");
+var count = total_count = 0;
+function onSuccess(e){
+  count ++;
+  if(count == total_count){
+    const button = document.querySelector(".generate-button");
+    button.disabled = false;
+    button.classList.remove("generate-button-loading");
+  }
 }
 
-function generateResponses(){
-
+function generateResponses(button){
+  button.disabled = true;
+  button.classList.add("generate-button-loading");
   const questionblocks = document.getElementsByClassName("questionblock");
   var prob = [];
   var text = [];
@@ -320,7 +422,14 @@ function generateResponses(){
     }
     prob.push(temp);
   }
-  google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(prob, text);
+  var quantity = document.querySelector("#quantity").value;
+  total_count = Math.ceil(quantity/10);
+  count = 0;
+  while(quantity > 10){
+    google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(prob, text, 10);
+    quantity -= 10;
+  }
+  google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(prob, text, Math.abs(quantity));
 }
 
 function scrollToElement(target, message){
