@@ -201,45 +201,52 @@
           transform: rotate(1turn);
         }
       }
-      .popup .overlay{
+      .popup {
         position: fixed;
-        min-height: 100%;
-        min-width: 100%;
-        left: 0;
-        top: 0;
-        background: rgba(0,0,0,0.5);
-        z-index:1;
-        display: none;
-      }
-      .popup .content{
-        position: fixed;
-        top:50%;
         left:50%;
-        transform:translate(-50%, -50%) scale(0);
-        background: #fff;
-        width:200px;
-        height:100px;
+        transform:translateX(-50%);
+        padding: 10px;
+        border-width: 1px;
+        border-style: solid;
+        font-size:14px;
+        background-color: #a8f0c6;
+        border-left: 5px solid #178344;
+        box-shadow: 0 0 15px 5px #ccc;
         text-align: center;
-        z-index:2;
+        border-radius: 5px;
+        margin-top: 0;
+        opacity: 0;
+        display:none;
+        white-space: nowrap;
+        font-weight: bold;
       }
-      .popup.active .overlay{
-        display: block;
+      .slide-up{
+        display:block;
+        animation: 5s slide-up;
       }
-      
-      .popup.active .content{
-        transition:all 300ms ease-in-out;
-        transform:translate(-50%, -50%) scale(1);
+      @keyframes slide-up {
+        0% {
+          margin-top: 0%;
+          opacity: 0;
+        }
+        20% {
+          margin-top: 20%;
+          opacity: 1;
+        }
+        80%{
+          margin-top: 20%;
+          opacity: 1;
+        }
+        100%{
+          margin-top: 0%;
+          opacity: 0;
+        }
       }
-
-
     </style>
   </head>
   <body>
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921" id="loading"></img>
-    <div class="popup">
-      <div class="overlay"></div>
-      <div class="content">0</div>
-    </div>
+    <div class="popup">Successfully generated responses</div>
     <div class="container">
       <div id="questions"></div>
       <div class="quantityblock">
@@ -366,6 +373,7 @@ function addtextInput(button_id){
   target.insertBefore(new_option, target.lastChild);
   remainHandle(id, 0);
 }
+
 var count = total_count = 0;
 function onSuccess(e){
   count ++;
@@ -373,6 +381,7 @@ function onSuccess(e){
     const button = document.querySelector(".generate-button");
     button.disabled = false;
     button.classList.remove("generate-button-loading");
+    document.querySelector(".popup").classList.add("slide-up");
   }
 }
 
@@ -393,6 +402,8 @@ function generateResponses(button){
         remain.setCustomValidity(message);
         remain.reportValidity();
       }
+      button.disabled = false;
+      button.classList.remove("generate-button-loading");
       return false;
     }
     const percentage_fields = questionblocks[i].querySelectorAll(".percentage-field");
@@ -407,6 +418,8 @@ function generateResponses(button){
           percentage_fields[j].setCustomValidity(message);
           percentage_fields[j].reportValidity();
         }
+        button.disabled = false;
+        button.classList.remove("generate-button-loading");
         return false;
       }else{
         temp.push(value/100);
@@ -422,9 +435,26 @@ function generateResponses(button){
     }
     prob.push(temp);
   }
-  var quantity = document.querySelector("#quantity").value;
+  const quantity_box =  document.querySelector("#quantity");
+  var quantity = quantity_box.value;
+  if(!(quantity <= 300 && quantity >= 1 && quantity != "")){
+    button.disabled = false;
+    button.classList.remove("generate-button-loading");
+    var message;
+    if(quantity > 300){
+      message = "We can only generate a \n maximum of 300 responses";
+    }else{
+      message = "Number of responses \n must be greater than 0";
+    }
+    quantity_box.setCustomValidity(message);
+    quantity_box.reportValidity();
+    return false;
+  }else{
+    quantity_box.setCustomValidity('');
+  }
   total_count = Math.ceil(quantity/10);
   count = 0;
+  document.querySelector(".popup").classList.remove("slide-up");
   while(quantity > 10){
     google.script.run.withSuccessHandler(onSuccess).createRandomSubmission(prob, text, 10);
     quantity -= 10;
